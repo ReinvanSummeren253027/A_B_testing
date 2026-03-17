@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GLB Verification Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  body { background: #f5f5f3; padding: 1.5rem; }
+  .header { background: #1a5a96; color: white; padding: 1rem 1.5rem; border-radius: 12px; text-align: center; margin-bottom: 1.5rem; font-size: 18px; }
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+  .card { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; }
+  .card-label { font-size: 13px; color: #666; margin-bottom: 6px; }
+  .card-value { font-size: 24px; font-weight: 500; }
+  .legend { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .legend-title { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+  .legend-items { display: flex; gap: 24px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #444; }
+  .filters { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .filters select { padding: 6px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
+  .filters button { padding: 6px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; cursor: pointer; background: white; }
+  .filters button:hover { background: #f0f0f0; }
+  .table-wrap { background: white; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; }
+  .table-title { padding: 1rem 1.25rem; font-size: 15px; font-weight: 500; border-bottom: 1px solid #e0e0e0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { padding: 10px 12px; text-align: left; color: #666; font-weight: 400; border-bottom: 1px solid #e0e0e0; }
+  td { padding: 10px 12px; border-bottom: 1px solid #e0e0e0; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f9f9f9; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .Flagged { background: #FCEBEB; color: #A32D2D; }
+  .Pending { background: #FAEEDA; color: #854F0B; }
+  .Approved { background: #EAF3DE; color: #3B6D11; }
+</style>
+</head>
+<body>
+
+<div class="header">GLB Verification Dashboard</div>
+
+<div class="cards">
+  <div class="card"><div class="card-label">Total Parcels</div><div class="card-value">25.000</div></div>
+  <div class="card"><div class="card-label">Auto-Approved</div><div class="card-value">22.321</div></div>
+  <div class="card"><div class="card-label">Flagged For Inspection</div><div class="card-value">12</div></div>
+  <div class="card"><div class="card-label">Pending Review</div><div class="card-value">5</div></div>
+</div>
+
+<div class="legend">
+  <div class="legend-title">Status guide</div>
+  <div class="legend-items">
+    <div class="legend-item"><span class="badge Approved">Approved</span> Crops match, confidence above 90%</div>
+    <div class="legend-item"><span class="badge Pending">Pending</span> Confidence between 70–90%, needs review</div>
+    <div class="legend-item"><span class="badge Flagged">Flagged</span> Crop mismatch or confidence below 70%</div>
+  </div>
+</div>
+
+<div class="filters">
+  <select id="crop-filter">
+    <option value="">All Crops</option>
+    <option value="Potatoes">Potatoes</option>
+    <option value="Sugarbeets">Sugarbeets</option>
+    <option value="Corn">Corn</option>
+  </select>
+  <select id="status-filter">
+    <option value="">All Status</option>
+    <option value="Flagged">Flagged</option>
+    <option value="Pending">Pending</option>
+    <option value="Approved">Approved</option>
+  </select>
+  <select id="province-filter">
+    <option value="">All Provinces</option>
+    <option value="Zeeland">Zeeland</option>
+    <option value="Friesland">Friesland</option>
+    <option value="Zuid-Holland">Zuid-Holland</option>
+    <option value="Overijssel">Overijssel</option>
+    <option value="Groningen">Groningen</option>
+  </select>
+  <button id="apply-btn">Apply</button>
+  <button id="reset-btn">Reset</button>
+</div>
+
+<div class="table-wrap">
+  <div class="table-title">Parcel Classifications</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Parcel ID</th>
+        <th>Farm</th>
+        <th>Province</th>
+        <th>Declared</th>
+        <th>Detected</th>
+        <th>Confidence</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<script>
+var data = [
+  { id: 'NL-ZLD-00089', farm: 'Bakker Agri', province: 'Zeeland', declared: 'Sugarbeets', detected: 'Corn', confidence: 61, status: 'Flagged' },
+  { id: 'NL-FRL-00201', farm: 'Bauma Akkers', province: 'Friesland', declared: 'Potatoes', detected: 'Sugarbeets', confidence: 73, status: 'Flagged' },
+  { id: 'NL-ZH-00622', farm: 'van Dam Crops', province: 'Zuid-Holland', declared: 'Corn', detected: 'Potatoes', confidence: 58, status: 'Flagged' },
+  { id: 'NL-OV-00403', farm: 'Smit Landbouw', province: 'Overijssel', declared: 'Sugarbeets', detected: 'Sugarbeets', confidence: 88, status: 'Pending' },
+  { id: 'NL-GRN-00142', farm: 'de Vries Farm', province: 'Groningen', declared: 'Potatoes', detected: 'Potatoes', confidence: 97, status: 'Approved' },
+  { id: 'NL-ZLD-00090', farm: 'Bakker Agri', province: 'Zeeland', declared: 'Sugarbeets', detected: 'Sugarbeets', confidence: 99, status: 'Approved' }
+];
+
+function render(rows) {
+  var tb = document.getElementById('table-body');
+  var html = '';
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    html += '<tr>';
+    html += '<td>' + r.id + '</td>';
+    html += '<td>' + r.farm + '</td>';
+    html += '<td>' + r.province + '</td>';
+    html += '<td>' + r.declared + '</td>';
+    html += '<td>' + r.detected + '</td>';
+    html += '<td>' + r.confidence + '%</td>';
+    html += '<td><span class="badge ' + r.status + '">' + r.status + '</span></td>';
+    html += '</tr>';
+  }
+  tb.innerHTML = html;
+}
+
+document.getElementById('apply-btn').addEventListener('click', function() {
+  var crop = document.getElementById('crop-filter').value;
+  var status = document.getElementById('status-filter').value;
+  var province = document.getElementById('province-filter').value;
+  var filtered = [];
+  for (var i = 0; i < data.length; i++) {
+    var r = data[i];
+    if (crop && r.declared !== crop) continue;
+    if (status && r.status !== status) continue;
+    if (province && r.province !== province) continue;
+    filtered.push(r);
+  }
+  render(filtered);
+});
+
+document.getElementById('reset-btn').addEventListener('click', function() {
+  document.getElementById('crop-filter').value = '';
+  document.getElementById('status-filter').value = '';
+  document.getElementById('province-filter').value = '';
+  render(data);
+});
+
+render(data);
+</script>
+</body>
+</html>
