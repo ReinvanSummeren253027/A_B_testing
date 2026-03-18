@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>GLB Verification Dashboard</title>
+<title>GLB Verification Dashboard - Version B</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
   body { background: #f5f5f3; padding: 1.5rem; }
@@ -13,8 +13,9 @@
   .card-value { font-size: 24px; font-weight: 500; }
   .legend { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
   .legend-title { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
-  .legend-items { display: flex; gap: 24px; flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #444; }
+  .legend-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #444; }
+  .legend-note { font-size: 12px; color: #666; border-top: 1px solid #e0e0e0; padding-top: 10px; }
   .filters { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
   .filters select { padding: 6px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
   .filters button { padding: 6px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; cursor: pointer; background: white; }
@@ -28,7 +29,7 @@
   tr:hover td { background: #f9f9f9; }
   .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
   .Flagged { background: #FCEBEB; color: #A32D2D; }
-  .Pending { background: #FAEEDA; color: #854F0B; }
+  .Uncertain { background: #FAEEDA; color: #854F0B; }
   .Approved { background: #EAF3DE; color: #3B6D11; }
 </style>
 </head>
@@ -40,16 +41,17 @@
   <div class="card"><div class="card-label">Total Parcels</div><div class="card-value">25.000</div></div>
   <div class="card"><div class="card-label">Auto-Approved</div><div class="card-value">22.321</div></div>
   <div class="card"><div class="card-label">Flagged For Inspection</div><div class="card-value">12</div></div>
-  <div class="card"><div class="card-label">Pending Review</div><div class="card-value">5</div></div>
+  <div class="card"><div class="card-label">Uncertain</div><div class="card-value">5</div></div>
 </div>
 
 <div class="legend">
-  <div class="legend-title">Status guide</div>
+  <div class="legend-title">How to read this dashboard</div>
   <div class="legend-items">
-    <div class="legend-item"><span class="badge Approved">Approved</span> Crops match, confidence above 90%</div>
-    <div class="legend-item"><span class="badge Pending">Pending</span> Confidence between 70–90%, needs review</div>
-    <div class="legend-item"><span class="badge Flagged">Flagged</span> Crop mismatch or confidence below 70%</div>
+    <div class="legend-item"><span class="badge Approved">Approved</span> Declared and detected crop match — model is confident in its prediction (confidence ≥ 85%)</div>
+    <div class="legend-item"><span class="badge Uncertain">Uncertain</span> Declared and detected crop match — but model confidence is low, manual review recommended (confidence &lt; 85%)</div>
+    <div class="legend-item"><span class="badge Flagged">Flagged</span> Declared and detected crop do not match — field inspection required</div>
   </div>
+  <div class="legend-note">The confidence score reflects how certain the model is about its detected crop type, not whether the declaration is correct.</div>
 </div>
 
 <div class="filters">
@@ -62,7 +64,7 @@
   <select id="status-filter">
     <option value="">All Status</option>
     <option value="Flagged">Flagged</option>
-    <option value="Pending">Pending</option>
+    <option value="Uncertain">Uncertain</option>
     <option value="Approved">Approved</option>
   </select>
   <select id="province-filter">
@@ -97,10 +99,10 @@
 
 <script>
 var data = [
-  { id: 'NL-ZLD-00089', farm: 'Bakker Agri', province: 'Zeeland', declared: 'Sugarbeets', detected: 'Corn', confidence: 61, status: 'Flagged' },
-  { id: 'NL-FRL-00201', farm: 'Bauma Akkers', province: 'Friesland', declared: 'Potatoes', detected: 'Sugarbeets', confidence: 73, status: 'Flagged' },
-  { id: 'NL-ZH-00622', farm: 'van Dam Crops', province: 'Zuid-Holland', declared: 'Corn', detected: 'Potatoes', confidence: 58, status: 'Flagged' },
-  { id: 'NL-OV-00403', farm: 'Smit Landbouw', province: 'Overijssel', declared: 'Sugarbeets', detected: 'Sugarbeets', confidence: 88, status: 'Pending' },
+  { id: 'NL-ZLD-00089', farm: 'Bakker Agri', province: 'Zeeland', declared: 'Sugarbeets', detected: 'Corn', confidence: 91, status: 'Flagged' },
+  { id: 'NL-FRL-00201', farm: 'Bauma Akkers', province: 'Friesland', declared: 'Potatoes', detected: 'Sugarbeets', confidence: 87, status: 'Flagged' },
+  { id: 'NL-ZH-00622', farm: 'van Dam Crops', province: 'Zuid-Holland', declared: 'Corn', detected: 'Potatoes', confidence: 93, status: 'Flagged' },
+  { id: 'NL-OV-00403', farm: 'Smit Landbouw', province: 'Overijssel', declared: 'Sugarbeets', detected: 'Sugarbeets', confidence: 72, status: 'Uncertain' },
   { id: 'NL-GRN-00142', farm: 'de Vries Farm', province: 'Groningen', declared: 'Potatoes', detected: 'Potatoes', confidence: 97, status: 'Approved' },
   { id: 'NL-ZLD-00090', farm: 'Bakker Agri', province: 'Zeeland', declared: 'Sugarbeets', detected: 'Sugarbeets', confidence: 99, status: 'Approved' }
 ];
@@ -110,15 +112,7 @@ function render(rows) {
   var html = '';
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
-    html += '<tr>';
-    html += '<td>' + r.id + '</td>';
-    html += '<td>' + r.farm + '</td>';
-    html += '<td>' + r.province + '</td>';
-    html += '<td>' + r.declared + '</td>';
-    html += '<td>' + r.detected + '</td>';
-    html += '<td>' + r.confidence + '%</td>';
-    html += '<td><span class="badge ' + r.status + '">' + r.status + '</span></td>';
-    html += '</tr>';
+    html += '<tr><td>' + r.id + '</td><td>' + r.farm + '</td><td>' + r.province + '</td><td>' + r.declared + '</td><td>' + r.detected + '</td><td>' + r.confidence + '%</td><td><span class="badge ' + r.status + '">' + r.status + '</span></td></tr>';
   }
   tb.innerHTML = html;
 }
@@ -127,14 +121,12 @@ document.getElementById('apply-btn').addEventListener('click', function() {
   var crop = document.getElementById('crop-filter').value;
   var status = document.getElementById('status-filter').value;
   var province = document.getElementById('province-filter').value;
-  var filtered = [];
-  for (var i = 0; i < data.length; i++) {
-    var r = data[i];
-    if (crop && r.declared !== crop) continue;
-    if (status && r.status !== status) continue;
-    if (province && r.province !== province) continue;
-    filtered.push(r);
-  }
+  var filtered = data.filter(function(r) {
+    if (crop && r.declared !== crop) return false;
+    if (status && r.status !== status) return false;
+    if (province && r.province !== province) return false;
+    return true;
+  });
   render(filtered);
 });
 
