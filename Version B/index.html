@@ -48,8 +48,8 @@
   <div class="legend-title">How to read this dashboard</div>
   <div class="legend-items">
     <div class="legend-item"><span class="badge Approved">Approved</span> Declared and detected crop match — model is confident in its prediction (confidence ≥ 85%)</div>
-    <div class="legend-item"><span class="badge Uncertain">Uncertain</span> Declared and detected crop match — but model confidence is low, manual review recommended (confidence &lt; 85%)</div>
-    <div class="legend-item"><span class="badge Flagged">Flagged</span> Declared and detected crop do not match — field inspection required</div>
+    <div class="legend-item"><span class="badge Uncertain">Uncertain</span> Model confidence is too low to make a reliable decision, manual review recommended (confidence &lt; 85%)</div>
+    <div class="legend-item"><span class="badge Flagged">Flagged</span> Declared and detected crop do not match — model is confident in this mismatch (confidence ≥ 85%), field inspection required</div>
   </div>
   <div class="legend-note">The confidence score reflects how certain the model is about its detected crop type, not whether the declaration is correct.</div>
 </div>
